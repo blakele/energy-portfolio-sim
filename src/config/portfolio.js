@@ -1,4 +1,7 @@
-export const STOCKS = [
+// Default stocks — used for migration of existing users and as a quick-start template.
+// The live portfolio is stored in portfolioStore; do NOT import these for runtime use.
+
+export const DEFAULT_STOCKS = [
   { symbol: 'CEG', name: 'Constellation Energy', sector: 'Nuclear', tier: 1, entryPrice: 295, icon: '\u269b\ufe0f' },
   { symbol: 'VST', name: 'Vistra Corp', sector: 'Nuclear/Gas', tier: 1, entryPrice: 162, icon: '\u269b\ufe0f' },
   { symbol: 'KMI', name: 'Kinder Morgan', sector: 'Midstream', tier: 1, entryPrice: 27, icon: '\ud83d\udd17' },
@@ -12,9 +15,7 @@ export const STOCKS = [
   { symbol: 'OKLO', name: 'Oklo Inc', sector: 'SMR', tier: 3, entryPrice: 35, icon: '\ud83d\udd2c' },
 ];
 
-export const BENCHMARK = { symbol: 'SPY', name: 'S&P 500 ETF', entryPrice: 600 };
-
-export const ALL_SYMBOLS = [...STOCKS.map(s => s.symbol), BENCHMARK.symbol];
+export const DEFAULT_BENCHMARK = { symbol: 'SPY', name: 'S&P 500 ETF', entryPrice: 600 };
 
 export const TIERS = {
   1: { label: 'Highest Conviction', color: 'tier1' },
@@ -23,17 +24,3 @@ export const TIERS = {
 };
 
 export const TIER_COLORS = { 1: '#f59e0b', 2: '#3b82f6', 3: '#8b5cf6' };
-
-export const SECTORS = [...new Set(STOCKS.map(s => s.sector))];
-
-export function getStockBySymbol(symbol) {
-  return STOCKS.find(s => s.symbol === symbol);
-}
-
-export function getStocksByTier(tier) {
-  return STOCKS.filter(s => s.tier === tier);
-}
-
-export function getStocksBySector(sector) {
-  return STOCKS.filter(s => s.sector === sector);
-}

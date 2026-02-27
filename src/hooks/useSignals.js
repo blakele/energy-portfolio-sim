@@ -4,7 +4,6 @@ import { usePortfolioStore } from '../stores/portfolioStore.js';
 import { useAnalysisStore } from '../stores/analysisStore.js';
 import { useFundamentalsStore } from '../stores/fundamentalsStore.js';
 import { useSignalsStore } from '../stores/signalsStore.js';
-import { STOCKS } from '../config/portfolio.js';
 import { computeAllTechnicals } from '../analysis/technicals.js';
 import { computeAllSignals, computePortfolioHealth } from '../analysis/signals.js';
 import { computeRebalanceDrifts, checkStopLossTakeProfit, computeCorrelationConcentration } from '../analysis/rebalance.js';
@@ -23,7 +22,8 @@ export function useSignals() {
 
   // Compute technicals + signals when history is available
   useEffect(() => {
-    const hasHistory = STOCKS.some(s => history[s.symbol]?.length > 50);
+    const { stocks } = usePortfolioStore.getState();
+    const hasHistory = stocks.some(s => history[s.symbol]?.length > 50);
     if (!hasHistory) return;
     if (computingRef.current) return;
     computingRef.current = true;
@@ -32,9 +32,8 @@ export function useSignals() {
     store.setLoading(true);
 
     try {
-      // Compute technicals for each stock
       const allTechnicals = {};
-      for (const stock of STOCKS) {
+      for (const stock of stocks) {
         const candles = history[stock.symbol];
         if (candles?.length > 14) {
           allTechnicals[stock.symbol] = computeAllTechnicals(candles);
@@ -43,11 +42,9 @@ export function useSignals() {
 
       store.setTechnicals(allTechnicals);
 
-      // Compute signals
       const signals = computeAllSignals(allTechnicals, fundamentals);
       store.setSignals(signals);
 
-      // Portfolio health
       const health = computePortfolioHealth(signals, allocations);
       store.setPortfolioHealth(health);
 
@@ -65,13 +62,14 @@ export function useSignals() {
     const hasQuotes = Object.keys(quotes).length > 0;
     if (!hasQuotes) return;
 
+    const { stocks } = usePortfolioStore.getState();
     const store = useSignalsStore.getState();
 
     try {
-      const drifts = computeRebalanceDrifts(allocations, quotes, STOCKS, investmentAmount);
+      const drifts = computeRebalanceDrifts(allocations, quotes, stocks, investmentAmount);
       store.setRebalanceData(drifts);
 
-      const alerts = checkStopLossTakeProfit(quotes, STOCKS, stopLossConfig);
+      const alerts = checkStopLossTakeProfit(quotes, stocks, stopLossConfig);
       store.setSlTpAlerts(alerts);
     } catch (err) {
       console.error('[useSignals] Rebalance computation failed:', err);
@@ -93,7 +91,6 @@ export function useSignals() {
 
   const computeSignals = useCallback(() => {
     computingRef.current = false;
-    // Trigger re-run by toggling computed
     useSignalsStore.getState().setComputed(false);
   }, []);
 

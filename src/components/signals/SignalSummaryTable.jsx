@@ -1,14 +1,15 @@
-import { STOCKS } from '../../config/portfolio.js';
+import { usePortfolio } from '../../hooks/usePortfolio.js';
 import { useSignalsStore } from '../../stores/signalsStore.js';
 import { rsiColor } from '../../utils/colors.js';
 import SignalBadge from '../shared/SignalBadge.jsx';
 import Tip from '../shared/Tip.jsx';
 
 export default function SignalSummaryTable() {
+  const { stocks } = usePortfolio();
   const signals = useSignalsStore(s => s.signals);
   const technicals = useSignalsStore(s => s.technicals);
 
-  const rows = STOCKS.filter(s => signals[s.symbol]).map(stock => {
+  const rows = stocks.filter(s => signals[s.symbol]).map(stock => {
     const sig = signals[stock.symbol];
     const tech = technicals[stock.symbol];
     return { stock, sig, tech };

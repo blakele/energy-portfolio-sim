@@ -1,20 +1,23 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useFundamentalsStore } from '../stores/fundamentalsStore.js';
+import { usePortfolioStore } from '../stores/portfolioStore.js';
 import { fetchAllMetrics } from '../services/priceService.js';
-import { ALL_SYMBOLS } from '../config/portfolio.js';
 
 export function useFundamentals() {
   const loading = useFundamentalsStore(s => s.loading);
   const hasFetchedRef = useRef(false);
 
   const refresh = useCallback(async () => {
+    const { stocks, benchmark } = usePortfolioStore.getState();
+    const allSymbols = [...stocks.map(s => s.symbol), benchmark.symbol];
+
     console.log('[useFundamentals] Starting fundamentals fetch via Yahoo Finance...');
     const { setLoading, clearErrors, setMetrics, setError } = useFundamentalsStore.getState();
     setLoading(true);
     clearErrors();
 
     try {
-      const { results, errors } = await fetchAllMetrics(ALL_SYMBOLS);
+      const { results, errors } = await fetchAllMetrics(allSymbols);
       const successCount = Object.keys(results).length;
       const errorCount = Object.keys(errors).length;
       console.log(`[useFundamentals] Done: ${successCount} succeeded, ${errorCount} failed`);
@@ -28,7 +31,6 @@ export function useFundamentals() {
     }
   }, []);
 
-  // Fetch once on mount (metrics cached 24h, no need for interval)
   useEffect(() => {
     if (!hasFetchedRef.current) {
       hasFetchedRef.current = true;

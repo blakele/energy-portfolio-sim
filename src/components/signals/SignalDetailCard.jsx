@@ -1,6 +1,6 @@
 import { LineChart, Line, XAxis, YAxis, ReferenceLine, ResponsiveContainer, Tooltip } from 'recharts';
 import { useSignalsStore } from '../../stores/signalsStore.js';
-import { getStockBySymbol } from '../../config/portfolio.js';
+import { usePortfolio } from '../../hooks/usePortfolio.js';
 import { rsiColor, signalColor, signalBg } from '../../utils/colors.js';
 import SignalBadge from '../shared/SignalBadge.jsx';
 import Tip from '../shared/Tip.jsx';
@@ -8,7 +8,6 @@ import Tip from '../shared/Tip.jsx';
 function RSIMiniChart({ rsiSeries }) {
   if (!rsiSeries || rsiSeries.length === 0) return null;
 
-  // Take last 60 data points for readability
   const data = rsiSeries.slice(-60).map((val, i) => ({ i, rsi: Math.round(val * 10) / 10 }));
 
   return (
@@ -69,6 +68,7 @@ function ScoreBar({ label, score, weight }) {
 export default function SignalDetailCard({ symbol }) {
   const sig = useSignalsStore(s => s.signals[symbol]);
   const tech = useSignalsStore(s => s.technicals[symbol]);
+  const { getStockBySymbol } = usePortfolio();
   const stock = getStockBySymbol(symbol);
 
   if (!sig || !tech || !stock) return null;

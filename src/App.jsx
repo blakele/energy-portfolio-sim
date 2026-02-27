@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { hasApiKey } from './services/finnhub.js';
+import { usePortfolioStore } from './stores/portfolioStore.js';
 import { usePrices } from './hooks/usePrices.js';
 import { useFundamentals } from './hooks/useFundamentals.js';
 import { useSnapshots } from './hooks/useSnapshots.js';
@@ -7,6 +8,7 @@ import { useSignals } from './hooks/useSignals.js';
 import Header from './components/layout/Header.jsx';
 import TabNav from './components/layout/TabNav.jsx';
 import ApiKeyPrompt from './components/layout/ApiKeyPrompt.jsx';
+import PortfolioSetup from './components/setup/PortfolioSetup.jsx';
 import DashboardPage from './components/dashboard/DashboardPage.jsx';
 import AllocationsPage from './components/allocations/AllocationsPage.jsx';
 import AnalysisPage from './components/analysis/AnalysisPage.jsx';
@@ -18,6 +20,7 @@ export default function App() {
   const [hasKey, setHasKey] = useState(hasApiKey());
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showSettings, setShowSettings] = useState(false);
+  const setupComplete = usePortfolioStore(s => s.setupComplete);
   const { refresh: refreshPrices, loading: pricesLoading } = usePrices();
   const { refresh: refreshFundamentals, loading: fundamentalsLoading } = useFundamentals();
   const { snapshotCount, firstDate, hasTodaySnapshot, exportSnapshots } = useSnapshots();
@@ -41,6 +44,10 @@ export default function App() {
     return <ApiKeyPrompt onComplete={handleKeySet} />;
   }
 
+  if (!setupComplete) {
+    return <PortfolioSetup />;
+  }
+
   return (
     <div className="min-h-screen bg-[var(--color-surface)] flex flex-col">
       <Header
@@ -59,7 +66,7 @@ export default function App() {
       </main>
       <footer className="border-t border-[var(--color-border)] px-6 py-3 flex items-center justify-between">
         <span className="text-[10px] text-[var(--color-text-dim)]">
-          Energy &times; AI Portfolio Simulator &bull; Data from Finnhub &bull; Not financial advice
+          Portfolio Simulator &bull; Data from Finnhub &bull; Not financial advice
         </span>
         <div className="flex items-center gap-3 text-[10px] text-[var(--color-text-dim)]">
           <span>

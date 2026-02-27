@@ -11,10 +11,10 @@ export default function Header({ onRefresh, loading, onSettingsClick }) {
         <span className="text-xl">&#9889;</span>
         <div>
           <h1 className="text-lg font-bold text-[var(--color-amber-500)]">
-            Energy &times; AI Portfolio
+            Portfolio Simulator
           </h1>
           <p className="text-[10px] text-[var(--color-text-dim)]">
-            Datacenter Infrastructure Thesis Tracker
+            Personal Investment Research Tool
           </p>
         </div>
       </div>

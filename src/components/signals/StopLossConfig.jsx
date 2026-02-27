@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { STOCKS } from '../../config/portfolio.js';
+import { usePortfolio } from '../../hooks/usePortfolio.js';
 import { usePortfolioStore } from '../../stores/portfolioStore.js';
 import { useSignalsStore } from '../../stores/signalsStore.js';
 import { usePriceStore } from '../../stores/priceStore.js';
@@ -134,6 +134,8 @@ function StopLossRow({ stock }) {
 }
 
 export default function StopLossConfig() {
+  const { stocks } = usePortfolio();
+
   return (
     <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg overflow-hidden">
       <div className="px-4 py-3 border-b border-[var(--color-border)]">
@@ -151,7 +153,7 @@ export default function StopLossConfig() {
           <span className="flex-1">Thresholds</span>
           <span>Actions</span>
         </div>
-        {STOCKS.map(stock => (
+        {stocks.map(stock => (
           <StopLossRow key={stock.symbol} stock={stock} />
         ))}
       </div>

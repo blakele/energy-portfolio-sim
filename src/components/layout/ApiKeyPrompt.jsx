@@ -20,7 +20,7 @@ export default function ApiKeyPrompt({ onComplete }) {
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
       <div className="bg-[#161b22] border border-[var(--color-border)] rounded-xl p-8 max-w-md w-full">
         <div className="text-2xl font-bold text-[var(--color-amber-500)] mb-2">
-          Energy Portfolio Simulator
+          Portfolio Simulator
         </div>
         <p className="text-sm text-[var(--color-text-muted)] mb-6">
           Enter your free Finnhub API key to fetch live stock prices.

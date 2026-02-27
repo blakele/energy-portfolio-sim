@@ -1,5 +1,3 @@
-import { STOCKS } from '../config/portfolio.js';
-
 function dailyReturns(candles) {
   const returns = [];
   for (let i = 1; i < candles.length; i++) {
@@ -28,9 +26,11 @@ function pearson(a, b) {
 
 /**
  * Compute pairwise correlation matrix from historical candle data.
+ * @param {Object} stockHistory - { symbol: candle[] }
+ * @param {Array} stocks - portfolio stock definitions
  */
-export function computeCorrelation(stockHistory) {
-  const symbols = STOCKS.map(s => s.symbol).filter(sym => stockHistory[sym]?.length > 10);
+export function computeCorrelation(stockHistory, stocks = []) {
+  const symbols = stocks.map(s => s.symbol).filter(sym => stockHistory[sym]?.length > 10);
   const returns = {};
 
   for (const sym of symbols) {

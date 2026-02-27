@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { usePriceStore } from '../stores/priceStore.js';
 import { usePortfolioStore } from '../stores/portfolioStore.js';
-import { STOCKS, BENCHMARK } from '../config/portfolio.js';
 import {
   takeSnapshot,
   loadSnapshots,
@@ -24,12 +23,14 @@ export function useSnapshots() {
     if (snapshotTaken) return;
     if (Object.keys(quotes).length < 3) return;
 
+    const { stocks, benchmark } = usePortfolioStore.getState();
+
     const result = takeSnapshot({
       quotes,
       allocations,
       investmentAmount,
-      stocks: STOCKS,
-      benchmark: BENCHMARK,
+      stocks,
+      benchmark,
     });
 
     if (result) {

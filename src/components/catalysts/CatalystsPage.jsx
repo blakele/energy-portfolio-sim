@@ -1,11 +1,16 @@
 import { getUpcomingCatalysts, getDaysUntil } from '../../config/catalysts.js';
-import { getStockBySymbol } from '../../config/portfolio.js';
+import { usePortfolio } from '../../hooks/usePortfolio.js';
 import { tierColor } from '../../utils/colors.js';
 import { formatShortDate } from '../../utils/dateUtils.js';
 import TierBadge from '../shared/TierBadge.jsx';
 
 export default function CatalystsPage() {
-  const catalysts = getUpcomingCatalysts();
+  const { stocks, getStockBySymbol } = usePortfolio();
+  const allCatalysts = getUpcomingCatalysts();
+
+  // Filter catalysts to only portfolio symbols
+  const portfolioSymbols = new Set(stocks.map(s => s.symbol));
+  const catalysts = allCatalysts.filter(c => portfolioSymbols.has(c.symbol));
 
   return (
     <div className="space-y-4">
@@ -15,7 +20,9 @@ export default function CatalystsPage() {
 
       {catalysts.length === 0 ? (
         <div className="text-sm text-[var(--color-text-dim)] text-center py-12">
-          No upcoming catalysts scheduled
+          {stocks.length === 0
+            ? 'Add stocks to see upcoming catalysts'
+            : 'No upcoming catalysts scheduled for your portfolio'}
         </div>
       ) : (
         <div className="space-y-2">

@@ -1,28 +1,31 @@
-import { STOCKS, BENCHMARK } from '../config/portfolio.js';
 import { fromUnix } from '../utils/dateUtils.js';
 
 /**
  * Run a historical backtest: replay daily prices with given allocations.
  * Returns portfolio value series and SPY series for comparison.
  * If metricsMap is provided, also computes dividend-adjusted total return series.
+ *
+ * @param {Object} stockHistory - { symbol: candle[] }
+ * @param {Array} spyHistory - candle[]
+ * @param {Object} allocations - { symbol: pct }
+ * @param {number} investmentAmount
+ * @param {Object} metricsMap - { symbol: { dividendPerShare } }
+ * @param {Array} stocks - portfolio stock definitions
+ * @param {Object} benchmark - { symbol, entryPrice }
  */
-export function runBacktest(stockHistory, spyHistory, allocations, investmentAmount, metricsMap = {}) {
-  // Build a map of date -> { symbol: close } for aligned dates
+export function runBacktest(stockHistory, spyHistory, allocations, investmentAmount, metricsMap = {}, stocks = [], benchmark = { entryPrice: 600 }) {
   const dateMap = new Map();
 
-  // Index SPY by date first
   const spyByDate = new Map();
   for (const candle of spyHistory) {
-    const dateKey = candle.date; // unix timestamp
+    const dateKey = candle.date;
     spyByDate.set(dateKey, candle.close);
   }
 
-  // Collect all dates where SPY has data
   const spyDates = new Set(spyByDate.keys());
 
-  // For each stock, index by date
   const stockByDate = {};
-  for (const s of STOCKS) {
+  for (const s of stocks) {
     stockByDate[s.symbol] = new Map();
     const hist = stockHistory[s.symbol] || [];
     for (const candle of hist) {
@@ -30,20 +33,18 @@ export function runBacktest(stockHistory, spyHistory, allocations, investmentAmo
     }
   }
 
-  // Find dates where SPY and at least some stocks have data
   const allDates = [...spyDates].sort((a, b) => a - b);
 
   if (allDates.length < 2) {
     return { dates: [], portfolioValues: [], portfolioTotalValues: [], spyValues: [], portfolioReturns: [], spyReturns: [], totalDividends: 0 };
   }
 
-  // Get first day's prices as base for normalization
   const firstDate = allDates[0];
   const basePrices = {};
-  for (const s of STOCKS) {
+  for (const s of stocks) {
     basePrices[s.symbol] = stockByDate[s.symbol].get(firstDate) || s.entryPrice;
   }
-  const spyBasePrice = spyByDate.get(firstDate) || BENCHMARK.entryPrice;
+  const spyBasePrice = spyByDate.get(firstDate) || benchmark.entryPrice;
 
   const dates = [];
   const portfolioValues = [];
@@ -56,17 +57,15 @@ export function runBacktest(stockHistory, spyHistory, allocations, investmentAmo
     let totalAllocUsed = 0;
     let dailyDividendAccrual = 0;
 
-    for (const s of STOCKS) {
+    for (const s of stocks) {
       const alloc = (allocations[s.symbol] || 0) / 100;
       const price = stockByDate[s.symbol].get(date);
       if (price != null && basePrices[s.symbol]) {
-        // Shares bought at base price with allocated capital
         const invested = investmentAmount * alloc;
         const shares = invested / basePrices[s.symbol];
         portfolioValue += shares * price;
         totalAllocUsed += alloc;
 
-        // Dividend accrual (spread annual dividend across 252 trading days)
         const dps = metricsMap[s.symbol]?.dividendPerShare;
         if (dps && dps > 0) {
           dailyDividendAccrual += shares * (dps / 252);
@@ -74,10 +73,8 @@ export function runBacktest(stockHistory, spyHistory, allocations, investmentAmo
       }
     }
 
-    // Only include dates where we have enough stock data
     if (totalAllocUsed < 0.5) continue;
 
-    // Scale portfolio value up if some stocks don't have data for this date
     if (totalAllocUsed < 0.99) {
       portfolioValue = portfolioValue / totalAllocUsed;
       dailyDividendAccrual = dailyDividendAccrual / totalAllocUsed;
@@ -95,7 +92,6 @@ export function runBacktest(stockHistory, spyHistory, allocations, investmentAmo
     spyValues.push(Math.round(spyVal * 100) / 100);
   }
 
-  // Compute daily returns (price-only)
   const portfolioReturns = [];
   const spyReturns = [];
   for (let i = 1; i < portfolioValues.length; i++) {

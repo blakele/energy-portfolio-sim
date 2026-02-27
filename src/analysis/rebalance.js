@@ -2,8 +2,6 @@
  * Rebalance drift, stop-loss/take-profit, and correlation concentration.
  */
 
-import { STOCKS } from '../config/portfolio.js';
-
 /**
  * Compute actual vs target allocation drift.
  * @param {object} allocations - { symbol: targetPct }

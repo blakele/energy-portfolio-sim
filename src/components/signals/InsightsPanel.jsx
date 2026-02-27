@@ -2,7 +2,6 @@ import { useSignalsStore } from '../../stores/signalsStore.js';
 import { usePortfolioStore } from '../../stores/portfolioStore.js';
 import { usePriceStore } from '../../stores/priceStore.js';
 import { useFundamentalsStore } from '../../stores/fundamentalsStore.js';
-import { STOCKS, getStockBySymbol } from '../../config/portfolio.js';
 import { signalColor } from '../../utils/colors.js';
 
 const PRIORITY = { high: '#ef4444', medium: '#f59e0b', low: '#3b82f6', positive: '#22c55e' };
@@ -32,17 +31,19 @@ function Insight({ icon, title, body, priority = 'medium', action }) {
   );
 }
 
-function generateInsights(signals, technicals, rebalanceData, slTpAlerts, concentrationWarnings, portfolioHealth, quotes, allocations, fundamentals, stopLossConfig) {
+function generateInsights(signals, technicals, rebalanceData, slTpAlerts, concentrationWarnings, portfolioHealth, quotes, allocations, fundamentals, stopLossConfig, stocks) {
   const insights = [];
+
+  const getStock = (symbol) => stocks.find(s => s.symbol === symbol);
 
   // --- STOP-LOSS / TAKE-PROFIT ALERTS (highest priority) ---
   for (const alert of slTpAlerts) {
-    const stock = getStockBySymbol(alert.symbol);
+    const stock = getStock(alert.symbol);
     if (alert.type === 'stop-loss') {
       insights.push({
         icon: '\u{1F6A8}',
         title: `${alert.symbol} hit your stop-loss`,
-        body: `${stock.name} is at ${alert.currentReturn}% return, past your -${Math.abs(alert.threshold)}% stop-loss. This was set to protect against further downside.`,
+        body: `${stock?.name || alert.symbol} is at ${alert.currentReturn}% return, past your -${Math.abs(alert.threshold)}% stop-loss. This was set to protect against further downside.`,
         priority: 'high',
         action: `Consider selling ${alert.symbol} to limit losses, or re-evaluate if your thesis still holds.`,
         sort: 0,
@@ -51,7 +52,7 @@ function generateInsights(signals, technicals, rebalanceData, slTpAlerts, concen
       insights.push({
         icon: '\u{1F389}',
         title: `${alert.symbol} hit your take-profit`,
-        body: `${stock.name} is at +${alert.currentReturn}% return, past your +${alert.threshold}% take-profit target.`,
+        body: `${stock?.name || alert.symbol} is at +${alert.currentReturn}% return, past your +${alert.threshold}% take-profit target.`,
         priority: 'positive',
         action: `Consider taking partial profits on ${alert.symbol} — selling some shares locks in gains while keeping upside exposure.`,
         sort: 1,
@@ -60,7 +61,7 @@ function generateInsights(signals, technicals, rebalanceData, slTpAlerts, concen
   }
 
   // --- OVERSOLD OPPORTUNITIES (RSI < 30) ---
-  const oversold = STOCKS.filter(s => technicals[s.symbol]?.rsi?.current < 30);
+  const oversold = stocks.filter(s => technicals[s.symbol]?.rsi?.current < 30);
   for (const stock of oversold) {
     const rsi = technicals[stock.symbol].rsi.current;
     const sig = signals[stock.symbol];
@@ -79,7 +80,7 @@ function generateInsights(signals, technicals, rebalanceData, slTpAlerts, concen
   }
 
   // --- OVERBOUGHT WARNINGS (RSI > 70) ---
-  const overbought = STOCKS.filter(s => technicals[s.symbol]?.rsi?.current > 70);
+  const overbought = stocks.filter(s => technicals[s.symbol]?.rsi?.current > 70);
   for (const stock of overbought) {
     const rsi = technicals[stock.symbol].rsi.current;
     insights.push({
@@ -95,7 +96,7 @@ function generateInsights(signals, technicals, rebalanceData, slTpAlerts, concen
   }
 
   // --- DEATH CROSS ---
-  const deathCrosses = STOCKS.filter(s => technicals[s.symbol]?.ma?.cross === 'death');
+  const deathCrosses = stocks.filter(s => technicals[s.symbol]?.ma?.cross === 'death');
   for (const stock of deathCrosses) {
     insights.push({
       icon: '\u{2620}\u{FE0F}',
@@ -108,7 +109,7 @@ function generateInsights(signals, technicals, rebalanceData, slTpAlerts, concen
   }
 
   // --- GOLDEN CROSS ---
-  const goldenCrosses = STOCKS.filter(s => technicals[s.symbol]?.ma?.cross === 'golden');
+  const goldenCrosses = stocks.filter(s => technicals[s.symbol]?.ma?.cross === 'golden');
   for (const stock of goldenCrosses) {
     insights.push({
       icon: '\u{2728}',
@@ -152,10 +153,10 @@ function generateInsights(signals, technicals, rebalanceData, slTpAlerts, concen
   }
 
   // --- NO STOP-LOSSES SET ---
-  const stocksWithoutSL = STOCKS.filter(s =>
+  const stocksWithoutSL = stocks.filter(s =>
     (allocations[s.symbol] || 0) > 0 && !stopLossConfig[s.symbol]
   );
-  if (stocksWithoutSL.length > 0 && stocksWithoutSL.length <= STOCKS.length) {
+  if (stocksWithoutSL.length > 0 && stocksWithoutSL.length <= stocks.length) {
     const tier3NoSL = stocksWithoutSL.filter(s => s.tier === 3);
     if (tier3NoSL.length > 0) {
       insights.push({
@@ -197,7 +198,7 @@ function generateInsights(signals, technicals, rebalanceData, slTpAlerts, concen
   }
 
   // --- STRONG BUY OPPORTUNITIES (BUY signal + low P/E + Tier 1-2) ---
-  const strongBuys = STOCKS.filter(s => {
+  const strongBuys = stocks.filter(s => {
     const sig = signals[s.symbol];
     const pe = fundamentals[s.symbol]?.pe;
     return sig?.signal === 'BUY' && sig?.score >= 30 && pe != null && pe > 0 && pe < 25 && s.tier <= 2;
@@ -241,23 +242,25 @@ export default function InsightsPanel() {
   const quotes = usePriceStore(s => s.quotes);
   const allocations = usePortfolioStore(s => s.allocations);
   const stopLossConfig = usePortfolioStore(s => s.stopLossConfig);
+  const stocks = usePortfolioStore(s => s.stocks);
   const fundamentals = useFundamentalsStore(s => s.metrics);
 
+  const getStock = (symbol) => stocks.find(s => s.symbol === symbol);
   const hasQuotes = Object.keys(quotes).length > 0;
 
   // Generate insights from signals data (if computed) or just quote-based insights
   const insights = computed
-    ? generateInsights(signals, technicals, rebalanceData, slTpAlerts, concentrationWarnings, portfolioHealth, quotes, allocations, fundamentals, stopLossConfig)
+    ? generateInsights(signals, technicals, rebalanceData, slTpAlerts, concentrationWarnings, portfolioHealth, quotes, allocations, fundamentals, stopLossConfig, stocks)
     : [];
 
   // Always show quote-based SL/TP alerts even without full signals
   const quotesOnlyInsights = !computed && hasQuotes && slTpAlerts.length > 0
     ? slTpAlerts.map(alert => {
-        const stock = getStockBySymbol(alert.symbol);
+        const stock = getStock(alert.symbol);
         return {
           icon: alert.type === 'stop-loss' ? '\u{1F6A8}' : '\u{1F389}',
           title: `${alert.symbol} hit your ${alert.type === 'stop-loss' ? 'stop-loss' : 'take-profit'}`,
-          body: `${stock.name} at ${alert.currentReturn}% return.`,
+          body: `${stock?.name || alert.symbol} at ${alert.currentReturn}% return.`,
           priority: alert.type === 'stop-loss' ? 'high' : 'positive',
           action: alert.type === 'stop-loss'
             ? `Consider selling to limit losses.`

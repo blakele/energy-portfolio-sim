@@ -2,7 +2,7 @@ import { usePriceStore } from '../../stores/priceStore.js';
 import { usePortfolioStore } from '../../stores/portfolioStore.js';
 import { useFundamentalsStore } from '../../stores/fundamentalsStore.js';
 import { useSignalsStore } from '../../stores/signalsStore.js';
-import { STOCKS, BENCHMARK } from '../../config/portfolio.js';
+import { usePortfolio } from '../../hooks/usePortfolio.js';
 import { formatMoney, formatPct, pctColor } from '../../utils/formatting.js';
 import { healthColor } from '../../utils/colors.js';
 import MetricCard from '../shared/MetricCard.jsx';
@@ -12,6 +12,7 @@ export default function PortfolioSummary() {
   const { allocations, investmentAmount } = usePortfolioStore();
   const allMetrics = useFundamentalsStore(s => s.metrics);
   const portfolioHealth = useSignalsStore(s => s.portfolioHealth);
+  const { stocks, benchmark } = usePortfolio();
 
   let totalValue = 0;
   let totalDailyPL = 0;
@@ -23,7 +24,7 @@ export default function PortfolioSummary() {
   let divYieldWeightTotal = 0;
   let stretchedCount = 0;
 
-  for (const stock of STOCKS) {
+  for (const stock of stocks) {
     const alloc = (allocations[stock.symbol] || 0) / 100;
     const quote = quotes[stock.symbol];
     if (!quote || alloc === 0) continue;
@@ -57,7 +58,6 @@ export default function PortfolioSummary() {
   const avgPE = peWeightTotal > 0 ? weightedPE / peWeightTotal : null;
   const portfolioYield = divYieldWeightTotal > 0 ? weightedDivYield / divYieldWeightTotal : null;
 
-  // Scale if not all stocks loaded
   if (totalAllocUsed > 0 && totalAllocUsed < 0.99) {
     totalValue = totalValue / totalAllocUsed;
     totalDailyPL = totalDailyPL / totalAllocUsed;
@@ -67,10 +67,9 @@ export default function PortfolioSummary() {
     ? ((totalValue - investmentAmount) / investmentAmount) * 100
     : null;
 
-  // SPY return for comparison
-  const spyQuote = quotes[BENCHMARK.symbol];
+  const spyQuote = quotes[benchmark.symbol];
   const spyReturn = spyQuote
-    ? ((spyQuote.price - BENCHMARK.entryPrice) / BENCHMARK.entryPrice) * 100
+    ? ((spyQuote.price - benchmark.entryPrice) / benchmark.entryPrice) * 100
     : null;
 
   const alpha = (totalReturn != null && spyReturn != null)
@@ -89,7 +88,7 @@ export default function PortfolioSummary() {
           label="Total Return"
           value={totalReturn != null ? formatPct(totalReturn) : '--'}
           color={pctColor(totalReturn)}
-          sub={`SPY: ${spyReturn != null ? formatPct(spyReturn) : '--'}`}
+          sub={`${benchmark.symbol}: ${spyReturn != null ? formatPct(spyReturn) : '--'}`}
         />
         <MetricCard
           label="Daily P&L"
@@ -97,10 +96,10 @@ export default function PortfolioSummary() {
           color={pctColor(totalDailyPL)}
         />
         <MetricCard
-          label="Alpha vs SPY"
+          label={`Alpha vs ${benchmark.symbol}`}
           value={alpha != null ? formatPct(alpha) : '--'}
           color={pctColor(alpha)}
-          sub="Excess return over S&P 500"
+          sub={`Excess return over ${benchmark.name}`}
         />
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

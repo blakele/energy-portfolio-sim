@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { usePriceStore } from '../stores/priceStore.js';
+import { usePortfolioStore } from '../stores/portfolioStore.js';
 import { fetchAllQuotes } from '../services/priceService.js';
-import { ALL_SYMBOLS } from '../config/portfolio.js';
 import { hasApiKey } from '../services/finnhub.js';
 import { isMarketOpen } from '../utils/dateUtils.js';
 
@@ -11,12 +11,14 @@ export function usePrices() {
   const loading = usePriceStore(s => s.loading);
   const intervalRef = useRef(null);
 
-  // Stable callback — uses getState() so it never changes identity
   const refresh = useCallback(async () => {
     if (!hasApiKey()) {
       console.warn('[usePrices] No API key — skipping fetch');
       return;
     }
+
+    const { stocks, benchmark } = usePortfolioStore.getState();
+    const allSymbols = [...stocks.map(s => s.symbol), benchmark.symbol];
 
     console.log('[usePrices] Starting price fetch...');
     const { setLoading, clearErrors, setQuotes, setError } = usePriceStore.getState();
@@ -24,7 +26,7 @@ export function usePrices() {
     clearErrors();
 
     try {
-      const { results, errors } = await fetchAllQuotes(ALL_SYMBOLS);
+      const { results, errors } = await fetchAllQuotes(allSymbols);
       const successCount = Object.keys(results).length;
       const errorCount = Object.keys(errors).length;
       console.log(`[usePrices] Done: ${successCount} succeeded, ${errorCount} failed`);
@@ -41,7 +43,6 @@ export function usePrices() {
   useEffect(() => {
     refresh();
 
-    // Auto-refresh during market hours
     intervalRef.current = setInterval(() => {
       if (isMarketOpen()) refresh();
     }, REFRESH_INTERVAL);
