@@ -1,17 +1,64 @@
+import { useState, useCallback } from 'react';
 import { usePortfolioStore } from '../../stores/portfolioStore.js';
+import { usePriceStore } from '../../stores/priceStore.js';
 import { usePortfolio } from '../../hooks/usePortfolio.js';
 import { TIERS } from '../../config/portfolio.js';
 import { computeDynamicPresets } from '../../config/presets.js';
 import { tierColor } from '../../utils/colors.js';
+import { formatMoney } from '../../utils/formatting.js';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import ManageStocks from './ManageStocks.jsx';
 
 export default function AllocationsPage() {
   const {
-    allocations, investmentAmount, selectedPreset,
+    allocations, investmentAmount, selectedPreset, shares,
     setAllocation, applyPreset, normalize, setInvestmentAmount,
+    setShares, applyShareAllocations,
   } = usePortfolioStore();
+  const quotes = usePriceStore(s => s.quotes);
   const { stocks } = usePortfolio();
+  const [inputMode, setInputMode] = useState('pct'); // 'pct' | 'shares'
+
+  const getPrice = useCallback((symbol) => {
+    const stock = stocks.find(s => s.symbol === symbol);
+    return quotes[symbol]?.price || stock?.entryPrice || 0;
+  }, [quotes, stocks]);
+
+  const handleShareChange = useCallback((symbol, count) => {
+    setShares(symbol, count);
+    // Build prices map and recompute allocations
+    const prices = {};
+    for (const s of stocks) prices[s.symbol] = getPrice(s.symbol);
+    // Need to use the updated shares — setShares is async, so apply with override
+    const currentShares = { ...usePortfolioStore.getState().shares, [symbol]: Math.max(0, count) };
+    let totalValue = 0;
+    const values = {};
+    for (const s of stocks) {
+      const c = currentShares[s.symbol] || 0;
+      const p = prices[s.symbol];
+      const val = c * p;
+      values[s.symbol] = val;
+      totalValue += val;
+    }
+    if (totalValue > 0) {
+      const allocs = {};
+      for (const s of stocks) {
+        allocs[s.symbol] = Math.round(((values[s.symbol] || 0) / totalValue) * 1000) / 10;
+      }
+      const sum = Object.values(allocs).reduce((a, b) => a + b, 0);
+      const diff = 100 - sum;
+      if (diff !== 0) {
+        const maxKey = Object.entries(allocs).sort((a, b) => b[1] - a[1])[0]?.[0];
+        if (maxKey) allocs[maxKey] = Math.round((allocs[maxKey] + diff) * 10) / 10;
+      }
+      usePortfolioStore.setState({
+        shares: currentShares,
+        allocations: allocs,
+        investmentAmount: Math.round(totalValue),
+        selectedPreset: null,
+      });
+    }
+  }, [stocks, getPrice, setShares]);
 
   const presets = computeDynamicPresets(stocks);
   const totalAlloc = Object.values(allocations).reduce((a, b) => a + b, 0);
@@ -78,8 +125,32 @@ export default function AllocationsPage() {
           {/* Sliders */}
           <div className="lg:col-span-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-xs text-[var(--color-text-dim)] uppercase tracking-wider">
-                Current Holdings
+              <div className="flex items-center gap-3">
+                <div className="text-xs text-[var(--color-text-dim)] uppercase tracking-wider">
+                  Current Holdings
+                </div>
+                <div className="flex bg-[var(--color-surface)] border border-[var(--color-border)] rounded overflow-hidden">
+                  <button
+                    onClick={() => setInputMode('pct')}
+                    className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
+                      inputMode === 'pct'
+                        ? 'bg-[var(--color-amber-500)] text-black'
+                        : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                    }`}
+                  >
+                    By %
+                  </button>
+                  <button
+                    onClick={() => setInputMode('shares')}
+                    className={`px-2.5 py-1 text-[10px] font-medium transition-colors ${
+                      inputMode === 'shares'
+                        ? 'bg-[var(--color-amber-500)] text-black'
+                        : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                    }`}
+                  >
+                    By Shares
+                  </button>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <span
@@ -88,12 +159,14 @@ export default function AllocationsPage() {
                 >
                   Total: {totalAlloc.toFixed(1)}%
                 </span>
-                <button
-                  onClick={normalize}
-                  className="text-[10px] bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded px-2 py-1 text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
-                >
-                  Normalize to 100%
-                </button>
+                {inputMode === 'pct' && (
+                  <button
+                    onClick={normalize}
+                    className="text-[10px] bg-[var(--color-surface-3)] border border-[var(--color-border)] rounded px-2 py-1 text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+                  >
+                    Normalize to 100%
+                  </button>
+                )}
               </div>
             </div>
 
@@ -106,28 +179,49 @@ export default function AllocationsPage() {
                   {stocks.filter(s => s.tier === tier).map(stock => (
                     <div key={stock.symbol} className="flex items-center gap-3 mb-2">
                       <span className="w-10 text-xs font-bold">{stock.symbol}</span>
-                      <input
-                        type="range"
-                        min="0"
-                        max="40"
-                        step="0.5"
-                        value={allocations[stock.symbol] || 0}
-                        onChange={e => setAllocation(stock.symbol, parseFloat(e.target.value))}
-                        className="flex-1"
-                        style={{
-                          accentColor: tierColor(stock.tier),
-                        }}
-                      />
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.5"
-                        value={allocations[stock.symbol] || 0}
-                        onChange={e => setAllocation(stock.symbol, parseFloat(e.target.value) || 0)}
-                        className="w-16 text-right text-xs bg-[var(--color-surface)] border border-[var(--color-border)] rounded px-2 py-1 focus:outline-none focus:border-[var(--color-amber-500)]"
-                      />
-                      <span className="text-[10px] text-[var(--color-text-dim)] w-4">%</span>
+                      {inputMode === 'pct' ? (
+                        <>
+                          <input
+                            type="range"
+                            min="0"
+                            max="40"
+                            step="0.5"
+                            value={allocations[stock.symbol] || 0}
+                            onChange={e => setAllocation(stock.symbol, parseFloat(e.target.value))}
+                            className="flex-1"
+                            style={{ accentColor: tierColor(stock.tier) }}
+                          />
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.5"
+                            value={allocations[stock.symbol] || 0}
+                            onChange={e => setAllocation(stock.symbol, parseFloat(e.target.value) || 0)}
+                            className="w-16 text-right text-xs bg-[var(--color-surface)] border border-[var(--color-border)] rounded px-2 py-1 focus:outline-none focus:border-[var(--color-amber-500)]"
+                          />
+                          <span className="text-[10px] text-[var(--color-text-dim)] w-4">%</span>
+                        </>
+                      ) : (
+                        <>
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={shares[stock.symbol] || ''}
+                            placeholder="0"
+                            onChange={e => handleShareChange(stock.symbol, parseFloat(e.target.value) || 0)}
+                            className="w-20 text-right text-xs bg-[var(--color-surface)] border border-[var(--color-border)] rounded px-2 py-1 focus:outline-none focus:border-[var(--color-amber-500)]"
+                          />
+                          <span className="text-[10px] text-[var(--color-text-dim)] w-10">shares</span>
+                          <span className="text-[10px] text-[var(--color-text-muted)] w-16 text-right">
+                            {formatMoney((shares[stock.symbol] || 0) * getPrice(stock.symbol))}
+                          </span>
+                          <span className="text-[10px] text-[var(--color-text-dim)] w-12 text-right">
+                            {(allocations[stock.symbol] || 0).toFixed(1)}%
+                          </span>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>

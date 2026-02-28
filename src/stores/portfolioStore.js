@@ -18,6 +18,7 @@ export const usePortfolioStore = create(
       // Allocation state
       investmentAmount: 100000,
       allocations: { ...defaultAllocations },
+      shares: {},  // { symbol: shareCount } — user-entered share counts
       selectedPreset: DEFAULT_PRESET,
       stopLossConfig: {},
 
@@ -36,10 +37,12 @@ export const usePortfolioStore = create(
         set(state => {
           const newStocks = state.stocks.filter(s => s.symbol !== symbol);
           const { [symbol]: _alloc, ...restAlloc } = state.allocations;
+          const { [symbol]: _sh, ...restShares } = state.shares;
           const { [symbol]: _sl, ...restSL } = state.stopLossConfig;
           return {
             stocks: newStocks,
             allocations: restAlloc,
+            shares: restShares,
             stopLossConfig: restSL,
             selectedPreset: null,
           };
@@ -62,6 +65,7 @@ export const usePortfolioStore = create(
           stocks: [...DEFAULT_STOCKS],
           benchmark: { ...DEFAULT_BENCHMARK },
           allocations: { ...defaultAllocations },
+          shares: {},
           selectedPreset: DEFAULT_PRESET,
           setupComplete: false,
           quickStartDismissed: false,
@@ -87,6 +91,40 @@ export const usePortfolioStore = create(
         }),
 
       setInvestmentAmount: (amount) => set({ investmentAmount: amount }),
+
+      // --- Share-based entry ---
+      setShares: (symbol, count) =>
+        set(state => ({
+          shares: { ...state.shares, [symbol]: Math.max(0, count) },
+        })),
+
+      applyShareAllocations: (prices) =>
+        set(state => {
+          const { shares, stocks } = state;
+          let totalValue = 0;
+          const values = {};
+          for (const stock of stocks) {
+            const count = shares[stock.symbol] || 0;
+            const price = prices[stock.symbol] || stock.entryPrice;
+            const val = count * price;
+            values[stock.symbol] = val;
+            totalValue += val;
+          }
+          if (totalValue === 0) return state;
+          const allocations = {};
+          for (const stock of stocks) {
+            allocations[stock.symbol] = Math.round(((values[stock.symbol] || 0) / totalValue) * 1000) / 10;
+          }
+          // Fix rounding to exactly 100%
+          const sum = Object.values(allocations).reduce((a, b) => a + b, 0);
+          const diff = 100 - sum;
+          if (diff !== 0) {
+            const maxKey = Object.entries(allocations).sort((a, b) => b[1] - a[1])[0]?.[0];
+            if (maxKey) allocations[maxKey] = Math.round((allocations[maxKey] + diff) * 10) / 10;
+          }
+          // Also update investmentAmount to match total portfolio value
+          return { allocations, investmentAmount: Math.round(totalValue), selectedPreset: null };
+        }),
 
       normalize: () =>
         set(state => {
@@ -127,10 +165,9 @@ export const usePortfolioStore = create(
     }),
     {
       name: 'energy-sim-portfolio',
-      version: 3,
+      version: 4,
       migrate: (persisted, version) => {
         if (version === 0 || version === 1 || version === undefined) {
-          // v1 → v2: existing users get DEFAULT_STOCKS migrated in, setupComplete = true
           persisted = {
             ...persisted,
             stocks: [...DEFAULT_STOCKS],
@@ -140,10 +177,17 @@ export const usePortfolioStore = create(
           version = 2;
         }
         if (version === 2) {
-          // v2 → v3: existing users already saw the app, skip quickStart
           persisted = {
             ...persisted,
             quickStartDismissed: true,
+          };
+          version = 3;
+        }
+        if (version === 3) {
+          // v3 → v4: add shares field
+          persisted = {
+            ...persisted,
+            shares: {},
           };
         }
         return persisted;
