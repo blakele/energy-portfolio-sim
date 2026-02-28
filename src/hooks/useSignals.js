@@ -7,6 +7,7 @@ import { useSignalsStore } from '../stores/signalsStore.js';
 import { computeAllTechnicals } from '../analysis/technicals.js';
 import { computeAllSignals, computePortfolioHealth } from '../analysis/signals.js';
 import { computeRebalanceDrifts, checkStopLossTakeProfit, computeCorrelationConcentration } from '../analysis/rebalance.js';
+import { computeEffectiveAllocations } from '../analysis/effectiveAllocations.js';
 
 export function useSignals() {
   const history = usePriceStore(s => s.history);
@@ -49,6 +50,16 @@ export function useSignals() {
       store.setPortfolioHealth(health);
 
       store.setComputed(true);
+
+      // Recompute effective allocations with fresh signal data
+      const currentQuotes = usePriceStore.getState().quotes;
+      if (Object.keys(currentQuotes).length > 0) {
+        const effective = computeEffectiveAllocations(
+          stocks, currentQuotes, fundamentals,
+          allTechnicals, signals
+        );
+        store.setEffectiveAllocations(effective.allocations, effective.adjustments, effective.suggestedCashPct);
+      }
     } catch (err) {
       console.error('[useSignals] Technicals computation failed:', err);
     } finally {
@@ -66,7 +77,17 @@ export function useSignals() {
     const store = useSignalsStore.getState();
 
     try {
-      const drifts = computeRebalanceDrifts(allocations, quotes, stocks, investmentAmount);
+      // Compute effective allocations first (uses technicals/signals if available)
+      const { technicals, signals, computed: isComputed } = useSignalsStore.getState();
+      const effective = computeEffectiveAllocations(
+        stocks, quotes, fundamentals,
+        isComputed ? technicals : null,
+        isComputed ? signals : null
+      );
+      store.setEffectiveAllocations(effective.allocations, effective.adjustments, effective.suggestedCashPct);
+
+      // Drift = actual holdings vs effective target
+      const drifts = computeRebalanceDrifts(allocations, effective.allocations, quotes, stocks, investmentAmount);
       store.setRebalanceData(drifts);
 
       const alerts = checkStopLossTakeProfit(quotes, stocks, stopLossConfig);
@@ -74,7 +95,7 @@ export function useSignals() {
     } catch (err) {
       console.error('[useSignals] Rebalance computation failed:', err);
     }
-  }, [quotes, allocations, investmentAmount, stopLossConfig]);
+  }, [quotes, allocations, investmentAmount, stopLossConfig, fundamentals]);
 
   // Concentration warnings when correlation matrix is available
   useEffect(() => {

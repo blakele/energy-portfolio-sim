@@ -50,7 +50,7 @@ export default function AllocationsPage() {
       {/* Presets */}
       <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-6">
         <div className="text-xs text-[var(--color-text-dim)] uppercase tracking-wider mb-3">
-          Allocation Presets
+          Holdings Presets
         </div>
         <div className="flex flex-wrap gap-2">
           {Object.keys(presets).map(name => (
@@ -79,7 +79,7 @@ export default function AllocationsPage() {
           <div className="lg:col-span-2 bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="text-xs text-[var(--color-text-dim)] uppercase tracking-wider">
-                Stock Allocations
+                Current Holdings
               </div>
               <div className="flex items-center gap-3">
                 <span
@@ -138,7 +138,7 @@ export default function AllocationsPage() {
           {/* Pie Chart */}
           <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-lg p-6">
             <div className="text-xs text-[var(--color-text-dim)] uppercase tracking-wider mb-4">
-              Allocation Breakdown
+              Holdings Breakdown
             </div>
             {pieData.length > 0 ? (
               <>
@@ -183,7 +183,7 @@ export default function AllocationsPage() {
               </>
             ) : (
               <div className="text-center py-12 text-[var(--color-text-dim)] text-xs">
-                Set allocations to see breakdown
+                Set holdings to see breakdown
               </div>
             )}
           </div>

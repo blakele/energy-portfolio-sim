@@ -57,7 +57,7 @@ export default function App() {
       />
       <TabNav active={activeTab} onChange={setActiveTab} />
       <main className="flex-1 p-6 max-w-[1400px] w-full mx-auto">
-        {activeTab === 'dashboard' && <DashboardPage />}
+        {activeTab === 'dashboard' && <DashboardPage onNavigate={setActiveTab} />}
         {activeTab === 'allocations' && <AllocationsPage />}
         {activeTab === 'analysis' && <AnalysisPage />}
         {activeTab === 'signals' && <SignalsPage />}

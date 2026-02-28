@@ -30,7 +30,7 @@ export default function RebalancePanel() {
           <Tip>Rebalance Drift</Tip>
         </h3>
         <p className="text-[10px] text-[var(--color-text-dim)] mt-0.5">
-          Actual allocation vs target — positions drifting &gt;5% are flagged.
+          Actual vs effective target — positions drifting &gt;5% are flagged.
         </p>
       </div>
       <div className="p-4 space-y-2">

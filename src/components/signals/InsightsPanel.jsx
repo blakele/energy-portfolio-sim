@@ -2,6 +2,8 @@ import { useSignalsStore } from '../../stores/signalsStore.js';
 import { usePortfolioStore } from '../../stores/portfolioStore.js';
 import { usePriceStore } from '../../stores/priceStore.js';
 import { useFundamentalsStore } from '../../stores/fundamentalsStore.js';
+import { EXIT_RULES } from '../../config/playbook.js';
+import { formatPrice } from '../../utils/formatting.js';
 import { signalColor } from '../../utils/colors.js';
 
 const PRIORITY = { high: '#ef4444', medium: '#f59e0b', low: '#3b82f6', positive: '#22c55e' };
@@ -60,6 +62,25 @@ function generateInsights(signals, technicals, rebalanceData, slTpAlerts, concen
     }
   }
 
+  // --- HARD FLOOR BREACHES (from EXIT_RULES) — only if you hold the stock ---
+  for (const stock of stocks) {
+    if ((allocations[stock.symbol] || 0) <= 0) continue;
+    const rules = EXIT_RULES[stock.symbol];
+    if (!rules?.hardFloor) continue;
+    const quote = quotes[stock.symbol];
+    if (!quote?.price) continue;
+    if (quote.price <= rules.hardFloor) {
+      insights.push({
+        icon: '\u{1F6D1}',
+        title: `${stock.symbol} below hard floor ${formatPrice(rules.hardFloor)}`,
+        body: `${stock.name} is at ${formatPrice(quote.price)}, below the absolute loss limit of ${formatPrice(rules.hardFloor)}. This was your pre-set exit trigger to prevent catastrophic loss.`,
+        priority: 'high',
+        action: `Sell entire position immediately. See Sell Recommendations panel for details.`,
+        sort: 0,
+      });
+    }
+  }
+
   // --- OVERSOLD OPPORTUNITIES (RSI < 30) ---
   const oversold = stocks.filter(s => technicals[s.symbol]?.rsi?.current < 30);
   for (const stock of oversold) {
@@ -67,14 +88,17 @@ function generateInsights(signals, technicals, rebalanceData, slTpAlerts, concen
     const sig = signals[stock.symbol];
     const pe = fundamentals[stock.symbol]?.pe;
     const peNote = pe != null && pe > 0 && pe < 25 ? ' and a reasonable valuation' : '';
+    const held = (allocations[stock.symbol] || 0) > 0;
     insights.push({
       icon: '\u{1F4C9}',
       title: `${stock.symbol} is oversold (RSI ${rsi.toFixed(0)})`,
       body: `${stock.name} has been heavily sold off recently${peNote}. RSI below 30 often signals a potential bounce. Composite score: ${sig?.score ?? '--'}.`,
       priority: stock.tier <= 2 ? 'medium' : 'low',
-      action: stock.tier === 1
-        ? `This is a Tier 1 (highest conviction) pick — consider adding to your position if you believe the thesis is intact.`
-        : `Research what caused the selloff before buying the dip.`,
+      action: !held
+        ? `You don't hold ${stock.symbol} — this could be a buying opportunity if fundamentals support it.`
+        : stock.tier === 1
+          ? `This is a Tier 1 (highest conviction) pick — consider adding to your position if you believe the thesis is intact.`
+          : `Research what caused the selloff before buying the dip.`,
       sort: 2,
     });
   }
@@ -83,40 +107,59 @@ function generateInsights(signals, technicals, rebalanceData, slTpAlerts, concen
   const overbought = stocks.filter(s => technicals[s.symbol]?.rsi?.current > 70);
   for (const stock of overbought) {
     const rsi = technicals[stock.symbol].rsi.current;
-    insights.push({
-      icon: '\u{1F4C8}',
-      title: `${stock.symbol} is overbought (RSI ${rsi.toFixed(0)})`,
-      body: `${stock.name} has rallied hard recently. RSI above 70 means it may be due for a pullback or consolidation.`,
-      priority: stock.tier === 3 ? 'medium' : 'low',
-      action: stock.tier === 3
-        ? `Speculative position — consider trimming if you have large gains. Don't let a winner turn into a loser.`
-        : `No rush to sell conviction picks, but avoid adding at these levels. Wait for a pullback.`,
-      sort: 3,
-    });
+    const held = (allocations[stock.symbol] || 0) > 0;
+    if (!held) {
+      // Not held — just note to avoid chasing
+      insights.push({
+        icon: '\u{1F4C8}',
+        title: `${stock.symbol} is overbought (RSI ${rsi.toFixed(0)})`,
+        body: `${stock.name} has rallied hard recently. RSI above 70 means it may be due for a pullback or consolidation.`,
+        priority: 'low',
+        action: `You don't hold ${stock.symbol} — avoid chasing here. Wait for a pullback before entering.`,
+        sort: 5,
+      });
+    } else {
+      insights.push({
+        icon: '\u{1F4C8}',
+        title: `${stock.symbol} is overbought (RSI ${rsi.toFixed(0)})`,
+        body: `${stock.name} has rallied hard recently. RSI above 70 means it may be due for a pullback or consolidation.`,
+        priority: stock.tier === 3 ? 'medium' : 'low',
+        action: stock.tier === 3
+          ? `Speculative position — consider trimming if you have large gains. Don't let a winner turn into a loser.`
+          : `No rush to sell conviction picks, but avoid adding at these levels. Wait for a pullback.`,
+        sort: 3,
+      });
+    }
   }
 
   // --- DEATH CROSS ---
   const deathCrosses = stocks.filter(s => technicals[s.symbol]?.ma?.cross === 'death');
   for (const stock of deathCrosses) {
+    const held = (allocations[stock.symbol] || 0) > 0;
     insights.push({
       icon: '\u{2620}\u{FE0F}',
       title: `${stock.symbol} — Death Cross detected`,
       body: `${stock.name}'s 50-day moving average just crossed below its 200-day MA. This is a bearish trend signal that often precedes further downside.`,
-      priority: 'high',
-      action: `Review your thesis on ${stock.symbol}. If fundamentals haven't changed, this may be noise. If the sector is weakening, consider reducing exposure.`,
-      sort: 2,
+      priority: held ? 'high' : 'low',
+      action: held
+        ? `Review your thesis on ${stock.symbol}. If fundamentals haven't changed, this may be noise. If the sector is weakening, consider reducing exposure.`
+        : `You don't hold ${stock.symbol} — avoid buying into a downtrend. Wait for trend reversal.`,
+      sort: held ? 2 : 5,
     });
   }
 
   // --- GOLDEN CROSS ---
   const goldenCrosses = stocks.filter(s => technicals[s.symbol]?.ma?.cross === 'golden');
   for (const stock of goldenCrosses) {
+    const held = (allocations[stock.symbol] || 0) > 0;
     insights.push({
       icon: '\u{2728}',
       title: `${stock.symbol} — Golden Cross detected`,
       body: `${stock.name}'s 50-day MA just crossed above its 200-day MA. This is a bullish trend confirmation signal.`,
       priority: 'positive',
-      action: `Trend is turning bullish. If ${stock.symbol} is underweight in your portfolio, this could be a good time to add.`,
+      action: held
+        ? `Trend is turning bullish. If ${stock.symbol} is underweight in your portfolio, this could be a good time to add.`
+        : `You don't hold ${stock.symbol} — trend is turning bullish, this could be a good entry point.`,
       sort: 3,
     });
   }
@@ -206,12 +249,15 @@ function generateInsights(signals, technicals, rebalanceData, slTpAlerts, concen
   for (const stock of strongBuys) {
     const sig = signals[stock.symbol];
     const pe = fundamentals[stock.symbol].pe;
+    const held = (allocations[stock.symbol] || 0) > 0;
     insights.push({
       icon: '\u{1F4AA}',
       title: `Strong buy case: ${stock.symbol}`,
       body: `${stock.name} has a BUY signal (score ${sig.score}), reasonable P/E of ${pe.toFixed(1)}, and is Tier ${stock.tier} conviction. Technicals and fundamentals are aligned.`,
       priority: 'positive',
-      action: `If you have cash to deploy, ${stock.symbol} is one of the strongest candidates based on your signal criteria.`,
+      action: held
+        ? `If you have cash to deploy, ${stock.symbol} is one of the strongest candidates to add to.`
+        : `You don't hold ${stock.symbol} yet — this is one of the strongest candidates to open a position in.`,
       sort: 3,
     });
   }

@@ -13,6 +13,7 @@ export const usePortfolioStore = create(
       stocks: [...DEFAULT_STOCKS],
       benchmark: { ...DEFAULT_BENCHMARK },
       setupComplete: false,
+      quickStartDismissed: false,
 
       // Allocation state
       investmentAmount: 100000,
@@ -54,6 +55,7 @@ export const usePortfolioStore = create(
       setBenchmark: (benchmarkDef) => set({ benchmark: benchmarkDef }),
 
       completeSetup: () => set({ setupComplete: true }),
+      dismissQuickStart: () => set({ quickStartDismissed: true }),
 
       resetPortfolio: () =>
         set({
@@ -62,6 +64,7 @@ export const usePortfolioStore = create(
           allocations: { ...defaultAllocations },
           selectedPreset: DEFAULT_PRESET,
           setupComplete: false,
+          quickStartDismissed: false,
           stopLossConfig: {},
         }),
 
@@ -124,15 +127,23 @@ export const usePortfolioStore = create(
     }),
     {
       name: 'energy-sim-portfolio',
-      version: 2,
+      version: 3,
       migrate: (persisted, version) => {
         if (version === 0 || version === 1 || version === undefined) {
           // v1 → v2: existing users get DEFAULT_STOCKS migrated in, setupComplete = true
-          return {
+          persisted = {
             ...persisted,
             stocks: [...DEFAULT_STOCKS],
             benchmark: { ...DEFAULT_BENCHMARK },
             setupComplete: true,
+          };
+          version = 2;
+        }
+        if (version === 2) {
+          // v2 → v3: existing users already saw the app, skip quickStart
+          persisted = {
+            ...persisted,
+            quickStartDismissed: true,
           };
         }
         return persisted;

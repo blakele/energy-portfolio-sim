@@ -4,6 +4,7 @@ import { useFundamentalsStore } from '../../stores/fundamentalsStore.js';
 import { useSignalsStore } from '../../stores/signalsStore.js';
 import { formatPrice, formatPct, formatMoney, formatCompact, pctColor } from '../../utils/formatting.js';
 import { rsiColor } from '../../utils/colors.js';
+import { computeBearScore } from '../../config/riskProfiles.js';
 import TierBadge from '../shared/TierBadge.jsx';
 import SignalBadge from '../shared/SignalBadge.jsx';
 import Tip from '../shared/Tip.jsx';
@@ -29,6 +30,8 @@ export default function StockCard({ stock }) {
   const signal = useSignalsStore(s => s.signals[stock.symbol]);
   const technicals = useSignalsStore(s => s.technicals[stock.symbol]);
 
+  const bearScore = computeBearScore(stock.symbol);
+
   const invested = investmentAmount * (allocation / 100);
   const shares = invested / stock.entryPrice;
   const currentVal = quote ? shares * quote.price : invested;
@@ -47,6 +50,18 @@ export default function StockCard({ stock }) {
               {metrics?.pe != null && metrics.pe > 40 && (
                 <span className="text-[9px] px-1 py-0.5 rounded bg-[#ef444420] text-[#ef4444]" title={`P/E: ${metrics.pe.toFixed(1)}`}>
                   !!
+                </span>
+              )}
+              {bearScore != null && (
+                <span
+                  className="text-[8px] font-bold px-1 py-0.5 rounded"
+                  style={{
+                    color: bearScore >= 60 ? '#ef4444' : bearScore >= 35 ? '#f59e0b' : '#22c55e',
+                    backgroundColor: (bearScore >= 60 ? '#ef4444' : bearScore >= 35 ? '#f59e0b' : '#22c55e') + '18',
+                  }}
+                  title={`Bear case risk: ${bearScore}/100`}
+                >
+                  R:{bearScore}
                 </span>
               )}
             </div>

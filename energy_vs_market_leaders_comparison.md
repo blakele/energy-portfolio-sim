@@ -1,5 +1,5 @@
 # Energy Picks vs. Market Leaders: Head-to-Head Comparison
-## February 23, 2026
+## Updated February 27, 2026
 
 *Not investment advice. All investments carry risk of loss.*
 
@@ -39,14 +39,14 @@ The Mag 7's earnings growth advantage is shrinking rapidly. When the growth prem
 
 ## YOUR ENERGY PICKS vs. MARKET LEADERS — ANALYST UPSIDE COMPARISON
 
-| Stock | Sector | Current Price | Avg Analyst Target | Implied Upside | 2026 EPS Growth | Rating |
+| Stock | Sector | Price (Feb 27) | Avg Analyst Target | Implied Upside | 2026 EPS Growth | Rating |
 |-------|--------|--------------|-------------------|---------------|----------------|--------|
-| **CEG** | Nuclear Power | ~$295 | ~$405 | **+37%** | +22.5% | Strong Buy |
-| **VST** | Nuclear/Gas/Retail | ~$162 | ~$234 | **+44%** | +64% | Strong Buy |
-| **GEV** | Grid Equipment | ~$830 | ~$850 | +2% (but many at $900+) | EBITDA 2x by 2028 | Strong Buy |
-| **KMI** | Midstream | ~$27 | ~$32 | **+19%** | +5% | Moderate Buy |
-| **LNG** | LNG Export | ~$215 | ~$266 | **+24%** | Strong | Buy |
-| **CCJ** | Uranium | ~$70 | N/A | High | +55% | Strong Buy |
+| **CEG** | Nuclear Power | ~$324 | ~$405 | **+25%** | +22.5% | Strong Buy |
+| **VST** | Nuclear/Gas/Retail | ~$176 | ~$234 | **+33%** | +64% | Strong Buy |
+| **GEV** | Grid Equipment | ~$876 | ~$900 | +3% (but many at $950+) | EBITDA 2x by 2028 | Strong Buy |
+| **KMI** | Midstream | ~$33 | ~$38 | **+15%** | +5% | Moderate Buy |
+| **LNG** | LNG Export | ~$233 | ~$266 | **+14%** | Strong | Buy |
+| **CCJ** | Uranium | ~$118 | ~$140 | **+19%** | +55% | Strong Buy |
 | | | | | | | |
 | **NVDA** | AI Semiconductors | ~$130 | ~$175 | +35% | +48% (FY27) | Strong Buy |
 | **GOOGL** | Search/Cloud/AI | ~$195 | ~$220 | +13% | +18% | Buy |
@@ -64,9 +64,9 @@ The Mag 7's earnings growth advantage is shrinking rapidly. When the growth prem
 
 Your energy picks offer analyst-projected upside that matches or exceeds the Mag 7:
 
-- **VST (+44%)** and **CEG (+37%)** both project more upside than every Mag 7 name except NVDA
-- **LNG (+24%)** and **KMI (+19%)** are comparable to AMZN and META
-- Even after energy's 22% YTD run, analysts still see room — unlike the Mag 7, which analysts see as closer to fairly valued after their selloff
+- **VST (+33%)** and **CEG (+25%)** both project competitive upside with the Mag 7
+- **CCJ (+19%)**, **KMI (+15%)**, and **LNG (+14%)** offer steady upside with stronger balance sheets
+- Even after energy's YTD run, analysts still see room — unlike the Mag 7, which analysts see as closer to fairly valued after their selloff
 
 ### 2. Earnings Growth: Energy Is Accelerating While Tech Decelerates
 
@@ -86,8 +86,8 @@ This is where the framework comparison gets interesting:
 **Energy stocks' revenue is increasingly contract-locked:**
 - CEG: 20-year PPAs with Microsoft, Meta, GSA
 - VST: 98% hedged for 2025, 96% for 2026; 20-year Vistra deal with Meta
-- KMI: Fee-based, inflation-protected; $10B backlog, 90% gas-related
-- GEV: $135B+ backlog growing to $200B by 2028
+- KMI: Fee-based, inflation-protected; $8.4-9.3B backlog, 90% gas-related
+- GEV: $150.2B backlog growing to $200B by 2028
 
 **Mag 7 revenue is high-quality but less locked:**
 - NVDA: Phenomenal demand but subject to chip cycle risk, competition (AMD, custom silicon), and China export restrictions
@@ -118,7 +118,39 @@ Here's what makes this comparison especially interesting for your thesis: **the 
 
 The Mag 7's "problem" (capital intensity) is literally the energy sector's catalyst. This creates an elegant hedge: if AI capex accelerates, energy wins from the spending. If AI capex decelerates, Mag 7 valuations compress but energy's existing contracts are already locked in.
 
-### 6. Risk Profile: Different, Not Better or Worse
+### 6. SEC Filing Fundamentals: Energy Has Stronger Contracted Visibility
+
+*Full analysis in [sec_filing_analysis.md](sec_filing_analysis.md).*
+
+SEC 10-K/10-Q analysis reveals a critical structural difference: **energy stocks have dramatically better revenue visibility through contracted backlogs and long-term PPAs**, while Mag 7 revenue depends on maintaining competitive moats.
+
+**Energy portfolio SEC highlights:**
+- **$150.2B** in orders at GE Vernova (targeting $200B by 2028)
+- **95%+** of Cheniere's LNG capacity contracted for the next decade
+- **20-year nuclear PPAs** with Microsoft and Meta at CEG and VST
+- **$44B** in grid construction backlog at Quanta Services (new candidate)
+- **$15B** in datacenter cooling/power backlog at Vertiv (new candidate)
+- Net cash balance sheets at GEV ($7.7B) and CCJ (~$0.2B)
+- **$26 million** insider purchase by KMI's chairman — strongest insider signal in the sector
+
+**Mag 7 SEC comparison:**
+- Revenue is high-quality but driven by competitive position, not contracts
+- NVDA faces chip cycle risk, AMD competition, China export controls
+- Cloud revenue (Azure, AWS, GCP) has competitive pressure and spending cycles
+- No equivalent of 20-year locked-in PPAs — revenue requires continuous market dominance
+- Much higher absolute capex ($72B+ for Meta alone in 2026) with uncertain ROI timelines
+
+**Key SEC-derived screening criteria added to research framework:**
+1. Contract backlog size and duration (>$1B preferred, multi-year visibility)
+2. Debt-to-equity ratio and credit rating trajectory (investment grade, improving)
+3. Free cash flow generation and yield (positive, growing)
+4. Insider buying vs. selling patterns (net buying = bullish conviction)
+5. Revenue concentration risk (no single customer >15% unless creditworthy)
+6. Contracted vs. merchant revenue mix (higher contracted = lower risk)
+
+*See [new_stock_candidates.md](new_stock_candidates.md) for 11 new candidates screened on these criteria.*
+
+### 7. Risk Profile: Different, Not Better or Worse
 
 **Mag 7 Risks:**
 - Valuation compression as growth decelerates
@@ -134,6 +166,7 @@ The Mag 7's "problem" (capital intensity) is literally the energy sector's catal
 - Interest rate sensitivity (especially renewables)
 - Policy/regulatory shifts
 - Project execution risk (especially SMRs)
+- Leverage risk at several names (VST 3.36x D/E, NEE $93B debt, NRG 6.15x D/E)
 
 ---
 
@@ -178,10 +211,26 @@ The data suggests your energy picks aren't just competitive with market leaders 
 **5. But don't completely ignore tech.** NVDA still offers +35% analyst upside with 48% revenue growth. If you believe in the AI buildout (which your entire energy thesis depends on), the AI infrastructure suppliers — NVDA, AVGO, GEV, and ETN — are the "no matter what" plays. GEV is arguably the bridge between both worlds.
 
 **A balanced allocation might look like:**
-- **Core energy (40-50%)**: CEG, VST, KMI — contracted cash flows, AI-datacenter demand
-- **Energy equipment/supply chain (15-20%)**: GEV, CCJ — "picks and shovels"
-- **AI infrastructure tech (15-20%)**: NVDA, AVGO — the other side of the energy demand thesis
-- **Income/defensive (10-15%)**: KMI, NEE, BEP — yield while you wait
-- **Speculative (5-10%)**: Oklo, EQT, smaller positions
+- **Core energy (35-45%)**: CEG, VST, KMI, LNG — contracted cash flows, AI-datacenter demand
+- **Energy equipment/supply chain (15-20%)**: GEV, CCJ, ETN — "picks and shovels"
+- **Grid buildout/datacenter infra (10-15%)**: VRT, PWR — cooling, construction, physical layer
+- **AI infrastructure tech (10-15%)**: NVDA, AVGO — the other side of the energy demand thesis
+- **Income/defensive (10-15%)**: KMI, NEE, BEP, WMB — yield while you wait
+- **Speculative (5-10%)**: OKLO, EQT, TLN, BWXT, LEU — smaller positions
+
+*See [new_stock_candidates.md](new_stock_candidates.md) for 11 additional candidates screened on SEC filing fundamentals (backlog, balance sheet, FCF, insider activity). Top new picks: VRT (Tier 1, $15B backlog), PWR (Tier 1, $44B backlog), BWXT (Tier 2, nuclear components), TLN (Tier 2, AWS PPA through 2042).*
 
 This isn't a bet against tech — it's a bet that the physical layer of AI infrastructure is underpriced relative to the software layer, and that the rotation has further to run.
+
+---
+
+## RESEARCH DOCUMENTS INDEX
+
+| Document | Contents |
+|----------|----------|
+| [energy_vs_market_leaders_comparison.md](energy_vs_market_leaders_comparison.md) | This file — thesis, comparisons, analyst targets |
+| [BEAR_CASE_STRESS_TEST.md](BEAR_CASE_STRESS_TEST.md) | 8 bear scenarios with probability assessments and stock-level impact |
+| [sec_filing_analysis.md](sec_filing_analysis.md) | SEC 10-K/10-Q analysis for all 11 current holdings |
+| [new_stock_candidates.md](new_stock_candidates.md) | 11 new candidates screened on SEC fundamentals |
+| [dip_research_2024_2026.md](dip_research_2024_2026.md) | Dip events, correlations, recovery patterns, technicals |
+| [INVESTMENT_PLAYBOOK.md](INVESTMENT_PLAYBOOK.md) | Buy/sell rules, position sizing, exit triggers, dip-buying protocol |

@@ -1,11 +1,12 @@
 import PortfolioSummary from './PortfolioSummary.jsx';
 import StockGrid from './StockGrid.jsx';
 import PerformanceChart from './PerformanceChart.jsx';
+import QuickStartCard from './QuickStartCard.jsx';
 import { useFundamentalsStore } from '../../stores/fundamentalsStore.js';
 import { usePriceStore } from '../../stores/priceStore.js';
 import { useSignalsStore } from '../../stores/signalsStore.js';
 
-export default function DashboardPage() {
+export default function DashboardPage({ onNavigate }) {
   // Signals state
   const rebalanceData = useSignalsStore(s => s.rebalanceData);
   const slTpAlerts = useSignalsStore(s => s.slTpAlerts);
@@ -34,6 +35,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <QuickStartCard onNavigate={onNavigate} />
       {showQuoteError && (
         <div className="bg-[#ef444410] border border-[#ef444440] rounded-lg px-4 py-3">
           <div className="flex items-center gap-2 mb-1">

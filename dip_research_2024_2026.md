@@ -1,20 +1,20 @@
 # Energy & AI-Infrastructure Stock Dip Research (2024-2026)
 
-## Current Approximate Prices (as of late February 2026)
+## Current Approximate Prices (as of February 27, 2026)
 
 | Ticker | Company | Price (approx) | 52-Week Range | YTD Change |
 |--------|---------|----------------|---------------|------------|
-| CEG | Constellation Energy | ~$288 | Wide | -17% to -23% YTD |
-| VST | Vistra Corp | ~$172 | $90-$220 | Down ~15% YTD |
-| GEV | GE Vernova | ~$382 | Wide | Down ~10% YTD |
+| CEG | Constellation Energy | ~$324 | Wide | Down from $353 start |
+| VST | Vistra Corp | ~$176 | $90-$220 | Down from recent highs |
+| GEV | GE Vernova | ~$876 | Wide | Near ATH |
 | KMI | Kinder Morgan | ~$33 | N/A | Up ~13.5% last month |
-| LNG | Cheniere Energy | ~$226 | N/A | Up ~12% YTD |
-| CCJ | Cameco | ~$113-$121 | N/A | ~10% off ATH |
-| NEE | NextEra Energy | N/A | N/A | N/A |
-| EQT | EQT Corp | N/A | N/A | N/A |
-| ETN | Eaton Corp | N/A | N/A | Down ~16% YTD |
+| LNG | Cheniere Energy | ~$233 | N/A | Up ~12% YTD |
+| CCJ | Cameco | ~$118 | N/A | Near multi-year highs |
+| NEE | NextEra Energy | ~$92 | N/A | Rangebound |
+| EQT | EQT Corp | ~$60 | N/A | Above $52 entry |
+| ETN | Eaton Corp | ~$374 | N/A | Down from $430+ peaks |
 | BEP | Brookfield Renewable | ~$32 | $19-$33 | Near 52-week high |
-| OKLO | Oklo Inc | ~$66 | $5.35-$194 | Down from Oct ATH of $194 |
+| OKLO | Oklo Inc | ~$69 | $5.35-$194 | Down from Oct ATH of $194 |
 
 ---
 

@@ -7,6 +7,9 @@ export const useSignalsStore = create((set) => ({
   rebalanceData: [],         // [{ symbol, targetPct, actualPct, drift, action, shares }]
   slTpAlerts: [],            // [{ symbol, type, threshold, currentReturn }]
   concentrationWarnings: [], // [{ stocks, avgCorrelation, combinedAllocation, warning }]
+  effectiveAllocations: {},    // { symbol: effectivePct }
+  allocationAdjustments: {},   // { symbol: [{ reason, basePct, effectivePct }] }
+  suggestedCashPct: 0,         // freed-up allocation from effective reductions
   loading: false,
   computed: false,
 
@@ -16,6 +19,11 @@ export const useSignalsStore = create((set) => ({
   setRebalanceData: (data) => set({ rebalanceData: data }),
   setSlTpAlerts: (data) => set({ slTpAlerts: data }),
   setConcentrationWarnings: (data) => set({ concentrationWarnings: data }),
+  setEffectiveAllocations: (allocs, adjustments, cashPct) => set({
+    effectiveAllocations: allocs,
+    allocationAdjustments: adjustments,
+    suggestedCashPct: cashPct,
+  }),
   setLoading: (val) => set({ loading: val }),
   setComputed: (val) => set({ computed: val }),
 
@@ -27,6 +35,9 @@ export const useSignalsStore = create((set) => ({
       rebalanceData: [],
       slTpAlerts: [],
       concentrationWarnings: [],
+      effectiveAllocations: {},
+      allocationAdjustments: {},
+      suggestedCashPct: 0,
       computed: false,
     }),
 }));

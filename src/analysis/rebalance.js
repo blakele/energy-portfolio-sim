@@ -3,21 +3,22 @@
  */
 
 /**
- * Compute actual vs target allocation drift.
- * @param {object} allocations - { symbol: targetPct }
+ * Compute actual vs effective-target allocation drift.
+ * @param {object} actualAllocations - { symbol: pct } what the user actually holds
+ * @param {object} effectiveAllocations - { symbol: pct } market-adjusted targets
  * @param {object} quotes - { symbol: { price } }
  * @param {Array} stocks - STOCKS array
  * @param {number} investmentAmount
  * @returns {Array<{ symbol, targetPct, actualPct, drift, action, shares }>}
  */
-export function computeRebalanceDrifts(allocations, quotes, stocks, investmentAmount) {
+export function computeRebalanceDrifts(actualAllocations, effectiveAllocations, quotes, stocks, investmentAmount) {
   const drifts = [];
   let totalCurrentValue = 0;
 
-  // First pass: compute current values
+  // First pass: compute current values from actual holdings
   const values = {};
   for (const stock of stocks) {
-    const alloc = (allocations[stock.symbol] || 0) / 100;
+    const alloc = (actualAllocations[stock.symbol] || 0) / 100;
     const quote = quotes[stock.symbol];
     if (!quote || alloc === 0) continue;
     const invested = investmentAmount * alloc;
@@ -29,9 +30,9 @@ export function computeRebalanceDrifts(allocations, quotes, stocks, investmentAm
 
   if (totalCurrentValue === 0) return [];
 
-  // Second pass: compute drift
+  // Second pass: compute drift against effective target
   for (const stock of stocks) {
-    const targetPct = allocations[stock.symbol] || 0;
+    const targetPct = effectiveAllocations[stock.symbol] || 0;
     const val = values[stock.symbol];
     if (!val) {
       if (targetPct > 0) {
